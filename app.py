@@ -1,3 +1,5 @@
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
 from flask import send_file
 from openpyxl import Workbook
 import tempfile
@@ -427,5 +429,69 @@ def export_excel():
         as_attachment=True,
         download_name="expenses.xlsx"
     )
+@app.route('/export_pdf')
+def export_pdf():
+
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    expenses = cursor.execute("""
+        SELECT expenses.id,
+               categories.name AS category_name,
+               expenses.amount,
+               expenses.description,
+               expenses.expense_date
+        FROM expenses
+        LEFT JOIN categories
+            ON expenses.category_id = categories.id
+        WHERE expenses.user_id = ?
+        ORDER BY expenses.expense_date DESC
+    """, (
+        session['user_id'],
+    )).fetchall()
+
+    temp_file = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".pdf"
+    )
+
+    pdf = SimpleDocTemplate(temp_file.name)
+
+    data = [
+        ["ID", "Category", "Amount", "Description", "Date"]
+    ]
+
+    for expense in expenses:
+        data.append([
+            expense['id'],
+            expense['category_name'],
+            str(expense['amount']),
+            expense['description'],
+            str(expense['expense_date'])
+        ])
+
+    table = Table(data)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+
+    pdf.build([table])
+
+    conn.close()
+
+    return send_file(
+        temp_file.name,
+        as_attachment=True,
+        download_name="expense_report.pdf"
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)
