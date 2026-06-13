@@ -114,10 +114,10 @@ def dashboard():
     cursor = conn.cursor()
 
     # FILTER CODE
-    # FILTER CODE
     selected_category = request.args.get('category')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    search = request.args.get('search')
 
     query = """
         SELECT expenses.*,
@@ -141,6 +141,16 @@ def dashboard():
     if end_date:
        query += " AND expenses.expense_date <= ?"
        params.append(end_date)
+
+    if search:
+       query += """
+           AND (
+           expenses.description LIKE ?
+           OR categories.name LIKE ?
+           )
+       """
+       params.append(f"%{search}%")
+       params.append(f"%{search}%")
 
     query += " ORDER BY expenses.expense_date DESC"
 
@@ -172,7 +182,8 @@ def dashboard():
         categories=categories,
         selected_category=selected_category,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        search=search
     )
 # ==========================
 # ADD EXPENSE

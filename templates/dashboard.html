@@ -72,6 +72,61 @@
 
         </div>
 
+        <!-- SEARCH BOX -->
+
+        <div class="col-md-3">
+
+            <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search expenses..."
+                value="{{ search or '' }}"
+            >
+
+        </div>
+
+        <!-- FILTER BUTTON -->
+
+        <div class="col-md-2">
+
+            <button class="btn btn-primary">
+                Filter
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <select name="category" class="form-select">
+
+                <option value="">
+                    All Categories
+                </option>
+
+                {% for category in categories %}
+
+                <option
+                    value="{{ category.id }}"
+                    {% if selected_category == category.id|string %}
+                    selected
+                    {% endif %}
+                >
+                    {{ category.name }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
         <div class="col-md-2">
 
             <button class="btn btn-primary">
