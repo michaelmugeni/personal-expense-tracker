@@ -20,6 +20,37 @@
             <div class="card-body">
 
                 <h5>Total Spending</h5>
+                <div class="card mt-4">
+
+    <div class="card-header bg-dark text-white">
+
+        Spending By Category
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-sm">
+
+            <tr>
+                <th>Category</th>
+                <th>Total</th>
+            </tr>
+
+            {% for item in category_totals %}
+
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>KES {{ item.total }}</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
 
                 <h2>
                     KES {{ total_expenses }}

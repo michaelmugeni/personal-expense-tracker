@@ -171,6 +171,19 @@ def dashboard():
         SELECT *
         FROM categories
     """).fetchall()
+    category_totals = cursor.execute("""
+    SELECT categories.name,
+           COALESCE(SUM(expenses.amount), 0) AS total
+    FROM expenses
+    LEFT JOIN categories
+        ON expenses.category_id = categories.id
+    WHERE expenses.user_id = ?
+    GROUP BY categories.name
+    ORDER BY total DESC
+""", (
+    session['user_id'],
+)).fetchall()
+    
 
     conn.close()
 
@@ -183,7 +196,8 @@ def dashboard():
         selected_category=selected_category,
         start_date=start_date,
         end_date=end_date,
-        search=search
+        search=search,
+        category_totals=category_totals
     )
 # ==========================
 # ADD EXPENSE
