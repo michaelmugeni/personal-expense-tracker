@@ -1,0 +1,15 @@
+venv/
+.venv/
+
+**pycache**/
+*.pyc
+
+database.db
+
+.env
+
+*.xlsx
+*.pdf
+
+.vscode/
+.idea/

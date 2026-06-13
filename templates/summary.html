@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Expense Summary{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+    <div class="col-md-6">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-primary text-white">
+                Expense Summary
+            </div>
+
+            <div class="card-body">
+
+                <table class="table table-striped">
+
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total (KES)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in summary %}
+
+                        <tr>
+                            <td>{{ item.category_name }}</td>
+                            <td>{{ item.total }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                <hr>
+
+                <h4>
+                    Total Spent:
+                    <span class="text-success">
+                        KES {{ total_spent }}
+                    </span>
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-success text-white">
+                Spending Distribution
+            </div>
+
+            <div class="card-body">
+
+                <canvas id="expenseChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('expenseChart');
+
+new Chart(ctx, {
+
+    type: 'pie',
+
+    data: {
+
+        labels: {{ chart_labels|tojson }},
+
+        datasets: [{
+            data: {{ chart_values|tojson }}
+        }]
+    }
+
+});
+
+</script>
+
+{% endblock %}
