@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+import os
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 from flask import send_file
@@ -166,29 +168,90 @@ def dashboard():
     """, (
         session['user_id'],
     )).fetchone()[0]
+    total_records = cursor.execute("""
+        SELECT COUNT(*)
+        FROM expenses
+        WHERE user_id = ?
+    """, (
+        session['user_id'],
+    )).fetchone()[0]
+    
+    highest_expense = cursor.execute("""
+    SELECT COALESCE(MAX(amount), 0)
+    FROM expenses
+    WHERE user_id = ?
+    """, (
+    session['user_id'],
+    )).fetchone()[0]
+
+    total_categories = cursor.execute("""
+    SELECT COUNT(*)
+    FROM categories
+    """).fetchone()[0]
 
     categories = cursor.execute("""
         SELECT *
         FROM categories
     """).fetchall()
-    category_totals = cursor.execute("""
-    SELECT categories.name,
-           COALESCE(SUM(expenses.amount), 0) AS total
-    FROM expenses
-    LEFT JOIN categories
-        ON expenses.category_id = categories.id
-    WHERE expenses.user_id = ?
-    GROUP BY categories.name
-    ORDER BY total DESC
-""", (
-    session['user_id'],
-)).fetchall()
+
     
+    category_totals = cursor.execute("""
+        SELECT categories.name,
+               COALESCE(SUM(expenses.amount), 0) AS total
+        FROM expenses
+        LEFT JOIN categories
+            ON expenses.category_id = categories.id
+        WHERE expenses.user_id = ?
+        GROUP BY categories.name
+        ORDER BY total DESC
+    """, (
+        session['user_id'],
+    )).fetchall()
+        # GENERATE PIE CHART
+
+    labels = []
+    amounts = []
+
+    for item in category_totals:
+        if item['total'] > 0:
+            labels.append(item['name'])
+            amounts.append(item['total'])
+
+    if amounts:
+
+        plt.figure(figsize=(6, 6))
+
+        plt.pie(
+            amounts,
+            labels=labels,
+            autopct='%1.1f%%'
+        )
+
+        plt.title("Expenses By Category")
+
+        os.makedirs(
+            os.path.join('static', 'charts'),
+            exist_ok=True
+        )
+
+        chart_path = os.path.join(
+            'static',
+            'charts',
+            'expense_pie.png'
+        )
+
+        plt.savefig(chart_path)
+        plt.close()
+
+
 
     conn.close()
 
     return render_template(
         'dashboard.html',
+        total_records=total_records,
+        highest_expense=highest_expense,
+        total_categories=total_categories,
         expenses=expenses,
         username=session['username'],
         total_expenses=total_expenses,
