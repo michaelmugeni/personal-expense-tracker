@@ -175,7 +175,7 @@ def dashboard():
     """, (
         session['user_id'],
     )).fetchone()[0]
-    
+
     highest_expense = cursor.execute("""
     SELECT COALESCE(MAX(amount), 0)
     FROM expenses
@@ -207,6 +207,25 @@ def dashboard():
     """, (
         session['user_id'],
     )).fetchall()
+
+    monthly_totals = cursor.execute("""
+        SELECT
+            strftime('%Y-%m', expense_date) AS month,
+            SUM(amount) AS total
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY month
+        ORDER BY month
+    """, (
+        session['user_id'],
+    )).fetchall()
+    months = []
+    totals = []
+
+    for row in monthly_totals:
+       months.append(row['month'])
+       totals.append(float(row['total']))
+
         # GENERATE PIE CHART
 
     labels = []
@@ -243,6 +262,32 @@ def dashboard():
         plt.savefig(chart_path)
         plt.close()
 
+    # MONTHLY TREND CHART
+
+    if totals:
+
+        plt.figure(figsize=(8, 4))
+
+        plt.plot(
+            months,
+            totals,
+            marker='o'
+       )
+
+        plt.title("Monthly Spending Trend")
+        plt.xlabel("Month")
+        plt.ylabel("Amount (KES)")
+        plt.grid(True)
+
+        trend_chart_path = os.path.join(
+            'static',
+            'charts',
+            'monthly_trend.png'
+        )
+
+        plt.savefig(trend_chart_path)
+        plt.close()
+
 
 
     conn.close()
@@ -252,6 +297,7 @@ def dashboard():
         total_records=total_records,
         highest_expense=highest_expense,
         total_categories=total_categories,
+        monthly_totals=monthly_totals,
         expenses=expenses,
         username=session['username'],
         total_expenses=total_expenses,
