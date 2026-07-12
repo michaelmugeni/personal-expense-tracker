@@ -1,0 +1,189 @@
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#F8FAFC;
+    color:#334155;
+}
+
+/* Navbar */
+
+.navbar{
+    background:white;
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+}
+
+/* Cards */
+
+.card{
+    border:none;
+    border-radius:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.08);
+    transition:.35s;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 20px 40px rgba(0,0,0,.12);
+}
+
+/* Buttons */
+
+.btn-primary{
+    background:#10B981;
+    border:none;
+    border-radius:12px;
+    padding:12px 22px;
+    transition:.3s;
+}
+
+.btn-primary:hover{
+    background:#059669;
+    transform:translateY(-2px);
+}
+
+/* Tables */
+
+.table{
+    border-radius:15px;
+    overflow:hidden;
+}
+
+/* Dashboard */
+
+.dashboard-title{
+    font-size:32px;
+    font-weight:700;
+}
+
+.subtitle{
+    color:gray;
+}
+
+/* HERO */
+
+.hero{
+    min-height:90vh;
+    display:flex;
+    align-items:center;
+    background:linear-gradient(135deg,#ECFDF5,white);
+}
+
+.hero-icon{
+    font-size:260px;
+    color:#10B981;
+    animation:float 3s ease-in-out infinite;
+}
+
+.feature-card{
+    text-align:center;
+    padding:40px;
+    transition:.4s;
+}
+
+.feature-card:hover{
+    transform:translateY(-10px);
+}
+
+footer{
+    background:white;
+    color:gray;
+}
+
+@keyframes float{
+
+0%{
+    transform:translateY(0px);
+}
+
+50%{
+    transform:translateY(-20px);
+}
+
+100%{
+    transform:translateY(0px);
+}
+
+}
+
+/* ===========================
+   DASHBOARD LAYOUT
+=========================== */
+
+.dashboard-container{
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:260px;
+    background:#0F172A;
+    padding:30px;
+    display:flex;
+    flex-direction:column;
+}
+
+.logo{
+    color:white;
+    margin-bottom:40px;
+}
+
+.sidebar a{
+    color:#CBD5E1;
+    text-decoration:none;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:10px;
+    transition:.3s;
+    font-weight:500;
+}
+
+.sidebar a:hover{
+    background:#10B981;
+    color:white;
+}
+
+.sidebar .active{
+    background:#10B981;
+    color:white;
+}
+
+.sidebar i{
+    margin-right:10px;
+}
+
+.main-content{
+    flex:1;
+    padding:40px;
+    background:#F8FAFC;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.stat-card{
+    background:white;
+    border-radius:18px;
+    padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-5px);
+}
+
+.stat-card h2{
+    color:#10B981;
+    font-weight:700;
+}
