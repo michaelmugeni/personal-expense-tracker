@@ -187,3 +187,54 @@ footer{
     color:#10B981;
     font-weight:700;
 }
+/* FILTER BAR */
+
+.form-control,
+.form-select{
+
+    border-radius:12px;
+
+    border:1px solid #dbe4ec;
+
+    padding:12px;
+
+    transition:.3s;
+
+}
+
+.form-control:focus,
+.form-select:focus{
+
+    border-color:#10B981;
+
+    box-shadow:0 0 0 .2rem rgba(16,185,129,.2);
+
+}
+
+.form-label{
+
+    color:#334155;
+
+}
+
+.btn-success{
+
+    background:#10B981;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    transition:.3s;
+
+}
+
+.btn-success:hover{
+
+    background:#059669;
+
+    transform:translateY(-2px);
+
+}

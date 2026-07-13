@@ -63,6 +63,7 @@
     <!-- MAIN CONTENT -->
 
     <main class="main-content">
+        
 
         <!-- TOP BAR -->
 
@@ -107,6 +108,43 @@
 
             </div>
 
+        <div class="row mt-4">
+
+            <div class="col-lg-8">
+
+                <div class ="card shadow-sm p-4">
+
+                        <h4 class="mb-4">
+
+                            Monthly Spending
+
+                        </h4>
+
+                        <canvas id="monthlyChart"></canvas>
+                    
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="card shadow-sm p-4">
+
+                    <h4 class="mb-4">
+
+                        Expenses by Category
+
+                    </h4>
+
+                    <canvas id="categoryChart"></canvas>
+
+                </div>
+
+            </div>
+            
+        </div>
+
             <div class="col-lg-3">
 
                 <div class="stat-card">
@@ -122,6 +160,7 @@
                 </div>
 
             </div>
+            
 
             <div class="col-lg-3">
 
@@ -178,6 +217,85 @@
 
     </div>
 
+    <!-- FILTER BAR -->
+
+<div class="card mt-4 mb-4 p-4">
+
+    <form method="GET">
+
+        <div class="row g-3 align-items-end">
+
+            <!-- CATEGORY -->
+
+            <div class="col-lg-4">
+
+                <label class="form-label fw-bold">
+                    <i class="bi bi-folder-fill text-success"></i>
+                    Category
+                </label>
+
+                <select name="category" class="form-select">
+
+                    <option value="">
+                        All Categories
+                    </option>
+
+                    {% for category in categories %}
+
+                    <option
+                        value="{{ category.id }}"
+                        {% if selected_category == category.id|string %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ category.name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <div class="col-lg-5">
+
+                <label class="form-label fw-bold">
+                    <i class="bi bi-search text-primary"></i>
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Search description..."
+                    value="{{ search or '' }}"
+                >
+
+            </div>
+
+            <!-- BUTTONS -->
+
+            <div class="col-lg-3 d-grid">
+
+                <button class="btn btn-success">
+
+                    <i class="bi bi-funnel-fill"></i>
+
+                    Apply Filters
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
     <!-- Monthly Trend -->
 
     <div class="col-lg-6">
@@ -198,7 +316,7 @@
     </div>
 
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

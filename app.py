@@ -226,42 +226,6 @@ def dashboard():
        months.append(row['month'])
        totals.append(float(row['total']))
 
-        # GENERATE PIE CHART
-
-    labels = []
-    amounts = []
-
-    for item in category_totals:
-        if item['total'] > 0:
-            labels.append(item['name'])
-            amounts.append(item['total'])
-
-    if amounts:
-
-        plt.figure(figsize=(6, 6))
-
-        plt.pie(
-            amounts,
-            labels=labels,
-            autopct='%1.1f%%'
-        )
-
-        plt.title("Expenses By Category")
-
-        os.makedirs(
-            os.path.join('static', 'charts'),
-            exist_ok=True
-        )
-
-        chart_path = os.path.join(
-            'static',
-            'charts',
-            'expense_pie.png'
-        )
-
-        plt.savefig(chart_path)
-        plt.close()
-
     # MONTHLY TREND CHART
 
     if totals:
