@@ -1,3 +1,4 @@
+ear
 import matplotlib.pyplot as plt
 import os
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
