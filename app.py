@@ -5,14 +5,18 @@ from reportlab.lib import colors
 from flask import send_file
 from openpyxl import Workbook
 import tempfile
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
 import sqlite3
 
 app = Flask(__name__)
 
 # Secret key for sessions
 app.secret_key = "expense_tracker_secret"
+
+# How long a "Remember me" session stays logged in
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
 
 # ==========================
@@ -30,12 +34,24 @@ def register():
 
     if request.method == 'POST':
 
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
         username = request.form['username']
         email = request.form['email']
+        raw_password = request.form['password']
+        confirm_password = request.form.get('confirm_password')
 
-        password = generate_password_hash(
-            request.form['password']
-        )
+        if confirm_password is not None and raw_password != confirm_password:
+
+            if is_ajax:
+                return jsonify({
+                    'success': False,
+                    'message': 'Passwords do not match.'
+                }), 400
+
+            return "Passwords do not match."
+
+        password = generate_password_hash(raw_password)
 
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
@@ -57,9 +73,21 @@ def register():
 
             conn.close()
 
+            if is_ajax:
+                return jsonify({
+                    'success': False,
+                    'message': 'Email already exists. Please use another email.'
+                }), 409
+
             return "Email already exists. Please use another email."
 
         conn.close()
+
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'redirect': '/login'
+            })
 
         return redirect('/login')
 
@@ -72,8 +100,11 @@ def login():
 
     if request.method == 'POST':
 
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email')
+        password = request.form.get('password')
+        remember = request.form.get('remember')
+
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
         conn = sqlite3.connect('database.db')
         conn.row_factory = sqlite3.Row
@@ -94,8 +125,21 @@ def login():
 
             session['user_id'] = user['id']
             session['username'] = user['username']
+            session.permanent = True if remember else False
+
+            if is_ajax:
+                return jsonify({
+                    'success': True,
+                    'redirect': '/dashboard'
+                })
 
             return redirect('/dashboard')
+
+        if is_ajax:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid email or password.'
+            }), 401
 
         return "Invalid Email or Password"
 
