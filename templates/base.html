@@ -22,7 +22,7 @@
       <div class="container">
         <a class="navbar-brand" href="/dashboard"> 💰 Expense Tracker </a>
 
-        <div>
+        <div class="d-flex align-items-center gap-2">
           {% if session.get('user_id') %}
 
           <a href="/dashboard" class="btn btn-light btn-sm"> Dashboard </a>
@@ -32,10 +32,26 @@
           <a href="/logout" class="btn btn-danger btn-sm"> Logout </a>
 
           {% endif %}
+
+          <button
+            class="theme-toggle ms-2"
+            type="button"
+            aria-label="Toggle dark mode"
+          >
+            <span class="theme-toggle-knob">
+              <i class="theme-toggle-icon bi bi-sun-fill"></i>
+            </span>
+          </button>
         </div>
       </div>
     </nav>
 
     <div class="container mt-4">{% block content %} {% endblock %}</div>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
   </body>
 </html>

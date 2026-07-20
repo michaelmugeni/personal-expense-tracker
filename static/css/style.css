@@ -8,36 +8,99 @@
     font-family:'Poppins',sans-serif;
 }
 
+/* ===========================================================
+   THEME VARIABLES (added — light values match your original
+   hardcoded colors exactly, so default appearance is unchanged)
+=========================================================== */
+
+:root{
+    --bg-body:#F8FAFC;
+    --text-primary:#334155;
+    --text-muted:gray;
+
+    --card-bg:#ffffff;
+    --card-shadow:rgba(0,0,0,.08);
+    --card-shadow-hover:rgba(0,0,0,.12);
+
+    --navbar-bg:#ffffff;
+    --navbar-glass-bg:rgba(255,255,255,.75);
+
+    --border-color:#dbe4ec;
+    --input-bg:#ffffff;
+
+    --sidebar-bg:#0F172A;
+    --main-bg:#F8FAFC;
+
+    --hero-bg-start:#ECFDF5;
+    --hero-bg-end:#ffffff;
+
+    --accent:#10B981;
+    --accent-dark:#059669;
+
+    --footer-bg:#ffffff;
+}
+
+html[data-theme="dark"]{
+    --bg-body:#0B1120;
+    --text-primary:#E2E8F0;
+    --text-muted:#94A3B8;
+
+    --card-bg:#131B2E;
+    --card-shadow:rgba(0,0,0,.45);
+    --card-shadow-hover:rgba(0,0,0,.6);
+
+    --navbar-bg:#0F172A;
+    --navbar-glass-bg:rgba(15,23,42,.75);
+
+    --border-color:#263449;
+    --input-bg:#1A2438;
+
+    --sidebar-bg:#060B16;
+    --main-bg:#0B1120;
+
+    --hero-bg-start:#0F2A22;
+    --hero-bg-end:#0B1120;
+
+    --accent:#10B981;
+    --accent-dark:#34D399;
+
+    --footer-bg:#0F172A;
+}
+
 body{
-    background:#F8FAFC;
-    color:#334155;
+    background:var(--bg-body);
+    color:var(--text-primary);
+    transition:background-color .35s ease, color .35s ease;
 }
 
 /* Navbar */
 
 .navbar{
-    background:white;
+    background:var(--navbar-bg);
     box-shadow:0 2px 12px rgba(0,0,0,.08);
+    transition:background-color .35s ease;
 }
 
 /* Cards */
 
 .card{
+    background:var(--card-bg);
+    color:var(--text-primary);
     border:none;
     border-radius:20px;
-    box-shadow:0 8px 30px rgba(0,0,0,.08);
-    transition:.35s;
+    box-shadow:0 8px 30px var(--card-shadow);
+    transition:transform .35s, box-shadow .35s, background-color .35s, color .35s;
 }
 
 .card:hover{
     transform:translateY(-6px);
-    box-shadow:0 20px 40px rgba(0,0,0,.12);
+    box-shadow:0 20px 40px var(--card-shadow-hover);
 }
 
 /* Buttons */
 
 .btn-primary{
-    background:#10B981;
+    background:var(--accent);
     border:none;
     border-radius:12px;
     padding:12px 22px;
@@ -45,7 +108,7 @@ body{
 }
 
 .btn-primary:hover{
-    background:#059669;
+    background:var(--accent-dark);
     transform:translateY(-2px);
 }
 
@@ -54,6 +117,7 @@ body{
 .table{
     border-radius:15px;
     overflow:hidden;
+    color:var(--text-primary);
 }
 
 /* Dashboard */
@@ -64,7 +128,7 @@ body{
 }
 
 .subtitle{
-    color:gray;
+    color:var(--text-muted);
 }
 
 /* HERO */
@@ -73,7 +137,8 @@ body{
     min-height:90vh;
     display:flex;
     align-items:center;
-    background:linear-gradient(135deg,#ECFDF5,white);
+    background:linear-gradient(135deg,var(--hero-bg-start),var(--hero-bg-end));
+    transition:background .35s ease;
 }
 
 .hero-icon{
@@ -93,8 +158,9 @@ body{
 }
 
 footer{
-    background:white;
-    color:gray;
+    background:var(--footer-bg);
+    color:var(--text-muted);
+    transition:background-color .35s ease;
 }
 
 @keyframes float{
@@ -124,10 +190,11 @@ footer{
 
 .sidebar{
     width:260px;
-    background:#0F172A;
+    background:var(--sidebar-bg);
     padding:30px;
     display:flex;
     flex-direction:column;
+    transition:background-color .35s ease;
 }
 
 .logo{
@@ -162,7 +229,8 @@ footer{
 .main-content{
     flex:1;
     padding:40px;
-    background:#F8FAFC;
+    background:var(--main-bg);
+    transition:background-color .35s ease;
 }
 
 .topbar{
@@ -172,11 +240,12 @@ footer{
 }
 
 .stat-card{
-    background:white;
+    background:var(--card-bg);
+    color:var(--text-primary);
     border-radius:18px;
     padding:25px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-    transition:.3s;
+    box-shadow:0 10px 25px var(--card-shadow);
+    transition:transform .3s, background-color .35s, color .35s;
 }
 
 .stat-card:hover{
@@ -192,9 +261,11 @@ footer{
 .form-control,
 .form-select{
 
+    background:var(--input-bg);
+    color:var(--text-primary);
     border-radius:12px;
 
-    border:1px solid #dbe4ec;
+    border:1px solid var(--border-color);
 
     padding:12px;
 
@@ -213,7 +284,7 @@ footer{
 
 .form-label{
 
-    color:#334155;
+    color:var(--text-primary);
 
 }
 
@@ -246,11 +317,11 @@ footer{
 
 /* Glass sticky navbar for landing page */
 .navbar-glass{
-    background:rgba(255,255,255,.75);
+    background:var(--navbar-glass-bg);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     box-shadow:0 2px 20px rgba(0,0,0,.06);
-    transition:.3s;
+    transition:background-color .35s ease;
 }
 
 /* Hero badge pill */
@@ -290,11 +361,11 @@ footer{
 .section-title{
     font-size:36px;
     font-weight:700;
-    color:#0F172A;
+    color:var(--text-primary);
 }
 
 .section-subtitle{
-    color:gray;
+    color:var(--text-muted);
     font-size:18px;
 }
 
@@ -314,7 +385,8 @@ footer{
 
 /* How it works section */
 .steps-section{
-    background:white;
+    background:var(--card-bg);
+    transition:background-color .35s ease;
 }
 
 .step-card{
@@ -326,7 +398,7 @@ footer{
 
 .step-card:hover{
     transform:translateY(-6px);
-    box-shadow:0 20px 40px rgba(0,0,0,.08);
+    box-shadow:0 20px 40px var(--card-shadow);
 }
 
 .step-number{
@@ -347,4 +419,49 @@ footer{
     color:#10B981;
     margin-bottom:15px;
     display:block;
+}
+
+/* ===========================================================
+   THEME TOGGLE SWITCH (added)
+=========================================================== */
+
+.theme-toggle{
+    position:relative;
+    width:56px;
+    height:30px;
+    background:var(--border-color);
+    border-radius:999px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    padding:3px;
+    transition:background-color .3s ease;
+    border:none;
+    flex-shrink:0;
+}
+
+.theme-toggle .theme-toggle-knob{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    color:#F59E0B;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+    transition:transform .35s cubic-bezier(.4,0,.2,1), color .3s ease;
+}
+
+html[data-theme="dark"] .theme-toggle{
+    background:#1E293B;
+}
+
+html[data-theme="dark"] .theme-toggle .theme-toggle-knob{
+    transform:translateX(26px);
+    color:#60A5FA;
 }
