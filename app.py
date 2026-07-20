@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import os
+import csv
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 from flask import send_file
@@ -7,7 +8,8 @@ from openpyxl import Workbook
 import tempfile
 from flask import Flask, render_template, request, redirect, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import timedelta
+from werkzeug.utils import secure_filename
+from datetime import timedelta, datetime
 import sqlite3
 
 app = Flask(__name__)
@@ -17,6 +19,17 @@ app.secret_key = "expense_tracker_secret"
 
 # How long a "Remember me" session stays logged in
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+# ==========================
+# NEW: PROFILE PICTURE UPLOAD CONFIG
+# ==========================
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # ==========================
@@ -165,6 +178,10 @@ def dashboard():
     end_date = request.args.get('end_date')
     search = request.args.get('search')
 
+    # SORT CODE (additive — defaults reproduce the previous hardcoded behavior)
+    sort_by = request.args.get('sort_by', 'date')
+    order = request.args.get('order', 'desc')
+
     query = """
         SELECT expenses.*,
            categories.name AS category_name
@@ -198,7 +215,15 @@ def dashboard():
        params.append(f"%{search}%")
        params.append(f"%{search}%")
 
-    query += " ORDER BY expenses.expense_date DESC"
+    sort_columns = {
+        'date': 'expenses.expense_date',
+        'amount': 'expenses.amount'
+    }
+
+    sort_column = sort_columns.get(sort_by, 'expenses.expense_date')
+    sort_direction = 'ASC' if order == 'asc' else 'DESC'
+
+    query += f" ORDER BY {sort_column} {sort_direction}"
 
     expenses = cursor.execute(
        query,
@@ -296,7 +321,34 @@ def dashboard():
         plt.savefig(trend_chart_path)
         plt.close()
 
+    # ==========================
+    # NEW: MONTH BUDGET REMAINING
+    # ==========================
 
+    current_month_key = datetime.now().strftime('%Y-%m')
+    current_month_label = datetime.now().strftime('%B %Y')
+
+    monthly_spending = cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND strftime('%Y-%m', expense_date) = ?
+    """, (
+        session['user_id'],
+        current_month_key
+    )).fetchone()[0]
+
+    budget_row = cursor.execute("""
+        SELECT monthly_budget
+        FROM users
+        WHERE id = ?
+    """, (
+        session['user_id'],
+    )).fetchone()
+
+    monthly_budget = budget_row['monthly_budget'] if budget_row and budget_row['monthly_budget'] is not None else 0
+
+    budget_remaining = monthly_budget - monthly_spending
 
     conn.close()
 
@@ -314,7 +366,13 @@ def dashboard():
         start_date=start_date,
         end_date=end_date,
         search=search,
-        category_totals=category_totals
+        category_totals=category_totals,
+        monthly_spending=monthly_spending,
+        monthly_budget=monthly_budget,
+        budget_remaining=budget_remaining,
+        current_month_label=current_month_label,
+        sort_by=sort_by,
+        order=order
     )
 # ==========================
 # ADD EXPENSE
@@ -419,7 +477,7 @@ def edit_expense(id):
     conn.close()
 
     return render_template(
-        'edit_expense.html',
+        'edit_expenses.html',
         expense=expense
     )
 
@@ -504,6 +562,179 @@ def logout():
     session.clear()
 
     return redirect('/login')
+
+# ==========================
+# NEW: UPDATE MONTHLY BUDGET
+# ==========================
+@app.route('/update_budget', methods=['POST'])
+def update_budget():
+
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not logged in.'}), 401
+
+    monthly_budget = request.form.get('monthly_budget')
+
+    if monthly_budget is None:
+        data = request.get_json(silent=True) or {}
+        monthly_budget = data.get('monthly_budget')
+
+    try:
+        monthly_budget = float(monthly_budget)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid budget amount.'}), 400
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE users
+        SET monthly_budget = ?
+        WHERE id = ?
+    """, (
+        monthly_budget,
+        session['user_id']
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'monthly_budget': monthly_budget
+    })
+
+# ==========================
+# NEW: PROFILE PAGE
+# ==========================
+@app.route('/profile')
+def profile():
+
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    user = cursor.execute("""
+        SELECT id, username, email, monthly_budget, profile_pic
+        FROM users
+        WHERE id = ?
+    """, (
+        session['user_id'],
+    )).fetchone()
+
+    total_records = cursor.execute("""
+        SELECT COUNT(*)
+        FROM expenses
+        WHERE user_id = ?
+    """, (
+        session['user_id'],
+    )).fetchone()[0]
+
+    conn.close()
+
+    return render_template(
+        'profile.html',
+        user=user,
+        total_records=total_records
+    )
+
+# ==========================
+# NEW: UPDATE PROFILE (username / email / profile picture)
+# ==========================
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not logged in.'}), 401
+
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip()
+
+    if not username or not email:
+        return jsonify({
+            'success': False,
+            'message': 'Username and email are required.'
+        }), 400
+
+    profile_pic_path = None
+    uploaded_file = request.files.get('profile_pic')
+
+    if uploaded_file and uploaded_file.filename:
+
+        if not allowed_file(uploaded_file.filename):
+            return jsonify({
+                'success': False,
+                'message': 'Only PNG, JPG, GIF, or WEBP images are allowed.'
+            }), 400
+
+        ext = uploaded_file.filename.rsplit('.', 1)[1].lower()
+        safe_name = secure_filename(
+            f"user_{session['user_id']}_{int(datetime.now().timestamp())}.{ext}"
+        )
+        uploaded_file.save(os.path.join(UPLOAD_FOLDER, safe_name))
+        profile_pic_path = f"uploads/{safe_name}"
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    try:
+
+        if profile_pic_path:
+
+            cursor.execute("""
+                UPDATE users
+                SET username = ?,
+                    email = ?,
+                    profile_pic = ?
+                WHERE id = ?
+            """, (
+                username,
+                email,
+                profile_pic_path,
+                session['user_id']
+            ))
+
+        else:
+
+            cursor.execute("""
+                UPDATE users
+                SET username = ?,
+                    email = ?
+                WHERE id = ?
+            """, (
+                username,
+                email,
+                session['user_id']
+            ))
+
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+
+        conn.close()
+
+        return jsonify({
+            'success': False,
+            'message': 'That email is already in use by another account.'
+        }), 409
+
+    conn.close()
+
+    # Keep session username in sync since the sidebar/topbar display it
+    session['username'] = username
+
+    response = {
+        'success': True,
+        'username': username,
+        'email': email
+    }
+
+    if profile_pic_path:
+        response['profile_pic'] = profile_pic_path
+
+    return jsonify(response)
 
 # ==========================
 # RUN APP
@@ -632,6 +863,65 @@ def export_pdf():
         temp_file.name,
         as_attachment=True,
         download_name="expense_report.pdf"
+    )
+
+# ==========================
+# NEW: EXPORT CSV
+# ==========================
+@app.route('/export_csv')
+def export_csv():
+
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    expenses = cursor.execute("""
+        SELECT expenses.id,
+               categories.name AS category_name,
+               expenses.amount,
+               expenses.description,
+               expenses.expense_date
+        FROM expenses
+        LEFT JOIN categories
+            ON expenses.category_id = categories.id
+        WHERE expenses.user_id = ?
+        ORDER BY expenses.expense_date DESC
+    """, (
+        session['user_id'],
+    )).fetchall()
+
+    temp_file = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".csv",
+        mode='w',
+        newline='',
+        encoding='utf-8'
+    )
+
+    writer = csv.writer(temp_file)
+
+    writer.writerow(["ID", "Category", "Amount", "Description", "Date"])
+
+    for expense in expenses:
+        writer.writerow([
+            expense['id'],
+            expense['category_name'],
+            expense['amount'],
+            expense['description'],
+            expense['expense_date']
+        ])
+
+    temp_file.close()
+
+    conn.close()
+
+    return send_file(
+        temp_file.name,
+        as_attachment=True,
+        download_name="expenses.csv"
     )
 
 

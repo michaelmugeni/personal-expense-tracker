@@ -30,7 +30,8 @@
     <aside class="sidebar">
 
         <h2 class="logo">
-            💰 ExpenseTracker
+            <i class="bi bi-piggy-bank-fill"></i>
+            <span>Expense Tracker</span>
         </h2>
 
         <a href="/dashboard" class="active">
@@ -48,7 +49,7 @@
             Summary
         </a>
 
-        <a href="#">
+        <a href="/profile">
             <i class="bi bi-person-fill"></i>
             Profile
         </a>
@@ -63,260 +64,318 @@
     <!-- MAIN CONTENT -->
 
     <main class="main-content">
-        
 
         <!-- TOP BAR -->
 
         <div class="topbar">
 
             <div>
-
                 <h2>
-
-                    👋 Welcome,
-                    {{ username }}
-
+                    👋 Welcome, {{ username }}
                 </h2>
-
                 <p>
-
                     Manage your finances smarter.
-
                 </p>
-
             </div>
+
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+                <span class="theme-toggle-knob">
+                    <i class="theme-toggle-icon bi bi-sun-fill"></i>
+                </span>
+            </button>
 
         </div>
 
-        <!-- STATISTICS -->
+        <!-- STAT CARDS -->
 
-        <div class="row mt-4">
+        <div class="row mt-4 g-4">
 
-            <div class="col-lg-3">
-
-                <div class="stat-card">
-
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-green">
+                    <div class="stat-icon-wrap">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
                     <h5>Total Expenses</h5>
-
                     <h2>
-
-                        KES {{ total_expenses }}
-
+                        KES <span class="counter-value" data-target="{{ total_expenses }}">0</span>
                     </h2>
-
                 </div>
-
             </div>
 
-        <div class="row mt-4">
-
-            <div class="col-lg-8">
-
-                <div class ="card shadow-sm p-4">
-
-                        <h4 class="mb-4">
-
-                            Monthly Spending
-
-                        </h4>
-
-                        <canvas id="monthlyChart"></canvas>
-                    
-
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-icon-wrap">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+                    <h5>{{ current_month_label }}</h5>
+                    <h2>
+                        KES <span class="counter-value" data-target="{{ monthly_spending }}">0</span>
+                    </h2>
                 </div>
-
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-icon-wrap">
+                        <i class="bi bi-tags-fill"></i>
+                    </div>
+                    <h5>Top Category</h5>
+                    <h2 class="text-truncate">
+                        {{ category_totals[0].name if category_totals else 'N/A' }}
+                    </h2>
+                    <p class="stat-subtext">
+                        KES <span class="counter-value" data-target="{{ category_totals[0].total if category_totals else 0 }}">0</span>
+                    </p>
+                </div>
+            </div>
 
-                <div class="card shadow-sm p-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-icon-wrap">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h5>Highest Expense</h5>
+                    <h2>
+                        KES <span class="counter-value" data-target="{{ highest_expense }}">0</span>
+                    </h2>
+                </div>
+            </div>
 
-                    <h4 class="mb-4">
+        </div>
 
+        <!-- CHARTS -->
+
+        <div class="row mt-4 g-4">
+
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h4 class="mb-3">
+                        <i class="bi bi-pie-chart-fill text-success"></i>
                         Expenses by Category
-
                     </h4>
-
-                    <canvas id="categoryChart"></canvas>
-
+                    <canvas id="categoryPieChart" height="260"></canvas>
                 </div>
-
-            </div>
-            
-        </div>
-
-            <div class="col-lg-3">
-
-                <div class="stat-card">
-
-                    <h5>Categories</h5>
-
-                    <h2>
-
-                        {{ categories|length }}
-
-                    </h2>
-
-                </div>
-
-            </div>
-            
-
-            <div class="col-lg-3">
-
-                <div class="stat-card">
-
-                    <h5>Transactions</h5>
-
-                    <h2>
-
-                        {{ expenses|length }}
-
-                    </h2>
-
-                </div>
-
             </div>
 
-            <div class="col-lg-3">
-
-                <div class="stat-card">
-
-                    <h5>Status</h5>
-
-                    <h2>
-
-                        Active
-
-                    </h2>
-
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h4 class="mb-3">
+                        <i class="bi bi-graph-up text-success"></i>
+                        Monthly Spending Trend
+                    </h4>
+                    <canvas id="monthlyLineChart" height="260"></canvas>
                 </div>
-
             </div>
 
         </div>
 
-<div class="row mt-4">
+        <!-- FILTER BAR -->
 
-    <!-- Pie Chart -->
+        <div class="card mt-4 p-4">
 
-    <div class="col-lg-6">
+            <form method="GET">
 
-        <div class="card p-4 h-100">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-folder-fill text-success"></i>
+                            Category
+                        </label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}"
+                                {% if selected_category == category.id|string %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-search text-primary"></i>
+                            Search
+                        </label>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Search description..."
+                               value="{{ search or '' }}">
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i>
+                            From
+                        </label>
+                        <input type="date" name="start_date" class="form-control"
+                               value="{{ start_date or '' }}">
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i>
+                            To
+                        </label>
+                        <input type="date" name="end_date" class="form-control"
+                               value="{{ end_date or '' }}">
+                    </div>
+
+                    <div class="col-lg-1 col-md-6">
+                        <label class="form-label fw-bold">Sort</label>
+                        <select name="sort_by" class="form-select">
+                            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                            <option value="amount" {% if sort_by == 'amount' %}selected{% endif %}>Amount</option>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-1 col-md-6">
+                        <label class="form-label fw-bold">Order</label>
+                        <select name="order" class="form-select">
+                            <option value="desc" {% if order == 'desc' %}selected{% endif %}>Desc</option>
+                            <option value="asc" {% if order == 'asc' %}selected{% endif %}>Asc</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="row g-3 mt-1">
+
+                    <div class="col-lg-3">
+                        <button class="btn btn-success w-100">
+                            <i class="bi bi-funnel-fill"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+
+                    <div class="col-lg-9 d-flex gap-2 justify-content-lg-end flex-wrap">
+                        <a href="/export_pdf" class="btn btn-outline-danger">
+                            <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                        </a>
+                        <a href="/export_excel" class="btn btn-outline-success">
+                            <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                        </a>
+                        <a href="/export_csv" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV
+                        </a>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- RECENT TRANSACTIONS -->
+
+        <div class="card mt-4 p-4">
 
             <h4 class="mb-3">
-                📊 Expenses by Category
+                <i class="bi bi-clock-history text-success"></i>
+                Recent Transactions
             </h4>
 
-            <img
-                src="{{ url_for('static', filename='charts/expense_pie.png') }}"
-                class="img-fluid"
-                alt="Expense Pie Chart">
-
-        </div>
-
-    </div>
-
-    <!-- FILTER BAR -->
-
-<div class="card mt-4 mb-4 p-4">
-
-    <form method="GET">
-
-        <div class="row g-3 align-items-end">
-
-            <!-- CATEGORY -->
-
-            <div class="col-lg-4">
-
-                <label class="form-label fw-bold">
-                    <i class="bi bi-folder-fill text-success"></i>
-                    Category
-                </label>
-
-                <select name="category" class="form-select">
-
-                    <option value="">
-                        All Categories
-                    </option>
-
-                    {% for category in categories %}
-
-                    <option
-                        value="{{ category.id }}"
-                        {% if selected_category == category.id|string %}
-                        selected
-                        {% endif %}
-                    >
-                        {{ category.name }}
-                    </option>
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-            <!-- SEARCH -->
-
-            <div class="col-lg-5">
-
-                <label class="form-label fw-bold">
-                    <i class="bi bi-search text-primary"></i>
-                    Search
-                </label>
-
-                <input
-                    type="text"
-                    name="search"
-                    class="form-control"
-                    placeholder="Search description..."
-                    value="{{ search or '' }}"
-                >
-
-            </div>
-
-            <!-- BUTTONS -->
-
-            <div class="col-lg-3 d-grid">
-
-                <button class="btn btn-success">
-
-                    <i class="bi bi-funnel-fill"></i>
-
-                    Apply Filters
-
-                </button>
-
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.expense_date }}</td>
+                            <td>
+                                <span class="badge-category">{{ expense.category_name or 'Uncategorized' }}</span>
+                            </td>
+                            <td>{{ expense.description }}</td>
+                            <td class="fw-bold">KES {{ expense.amount }}</td>
+                            <td class="text-end">
+                                <button type="button"
+                                        class="btn btn-sm action-btn action-btn-view"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#viewExpenseModal"
+                                        data-date="{{ expense.expense_date }}"
+                                        data-category="{{ expense.category_name or 'Uncategorized' }}"
+                                        data-description="{{ expense.description }}"
+                                        data-amount="{{ expense.amount }}">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                                <a href="/edit_expense/{{ expense.id }}"
+                                   class="btn btn-sm action-btn action-btn-edit">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <a href="/delete_expense/{{ expense.id }}"
+                                   class="btn btn-sm action-btn action-btn-delete"
+                                   onclick="return confirm('Delete this expense? This cannot be undone.');">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No transactions found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
         </div>
 
-    </form>
+    </main>
 
 </div>
 
-    <!-- Monthly Trend -->
+<!-- VIEW EXPENSE MODAL -->
 
-    <div class="col-lg-6">
-
-        <div class="card p-4 h-100">
-
-            <h4 class="mb-3">
-                📈 Monthly Spending Trend
-            </h4>
-
-            <img
-                src="{{ url_for('static', filename='charts/monthly_trend.png') }}"
-                class="img-fluid"
-                alt="Monthly Trend">
-
+<div class="modal fade" id="viewExpenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-receipt"></i>
+                    Expense Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Date:</strong> <span id="modalDate"></span></p>
+                <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+                <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+                <p><strong>Amount:</strong> KES <span id="modalAmount"></span></p>
+            </div>
         </div>
-
     </div>
-
 </div>
+
+<!-- Chart data (built with plain Jinja loops — sqlite3.Row is not tojson-safe) -->
+<script>
+    window.categoryLabels = [{% for c in category_totals %}"{{ c.name }}"{% if not loop.last %},{% endif %}{% endfor %}];
+    window.categoryValues = [{% for c in category_totals %}{{ c.total }}{% if not loop.last %},{% endif %}{% endfor %}];
+    window.monthlyLabels = [{% for m in monthly_totals %}"{{ m.month }}"{% if not loop.last %},{% endif %}{% endfor %}];
+    window.monthlyValues = [{% for m in monthly_totals %}{{ m.total }}{% if not loop.last %},{% endif %}{% endfor %}];
+</script>
+
+<!-- Bootstrap JS bundle (needed for the modal — was not previously included) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Theme toggle (existing file, already used by login/register/base) -->
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+<!-- Dashboard behaviour (counters, charts, view modal) -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
 </body>
 
 </html>

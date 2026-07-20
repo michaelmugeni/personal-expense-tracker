@@ -11,7 +11,9 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        monthly_budget REAL DEFAULT 0,
+        profile_pic TEXT
     )
     """)
 
