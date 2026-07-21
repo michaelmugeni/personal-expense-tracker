@@ -1,0 +1,45 @@
+<!-- ========================================================= -->
+<!-- CHATBOT WIDGET (include this partial before </body> on any -->
+<!-- page where the user is logged in)                          -->
+<!-- ========================================================= -->
+
+<div id="chatbotLauncher" aria-label="Open assistant">
+    <i class="bi bi-chat-dots-fill"></i>
+</div>
+
+<div id="chatbotPanel">
+
+    <div class="chatbot-header">
+        <div class="chatbot-header-title">
+            <i class="bi bi-piggy-bank-fill"></i>
+            <span>Expense Assistant</span>
+        </div>
+        <button type="button" id="chatbotClose" aria-label="Close assistant">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="chatbot-msg chatbot-msg-bot">
+            Hi! I can guide you around the app or share a finance tip.
+            Try one of these, or type your own question:
+        </div>
+        <div class="chatbot-suggestions">
+            <button type="button" class="chatbot-chip" data-msg="How do I add an expense?">Add an expense</button>
+            <button type="button" class="chatbot-chip" data-msg="How do I set a budget?">Set a budget</button>
+            <button type="button" class="chatbot-chip" data-msg="Give me a finance tip">Finance tip</button>
+            <button type="button" class="chatbot-chip" data-msg="How do I export my data?">Export data</button>
+        </div>
+    </div>
+
+    <form id="chatbotForm" class="chatbot-input-row" autocomplete="off">
+        <input type="text" id="chatbotInput" placeholder="Ask me anything about the app..." required>
+        <button type="submit" aria-label="Send">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </form>
+
+</div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>

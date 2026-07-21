@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import timedelta, datetime
 import sqlite3
+from chatbot import get_bot_response
 
 app = Flask(__name__)
 
@@ -923,6 +924,25 @@ def export_csv():
         as_attachment=True,
         download_name="expenses.csv"
     )
+
+
+# ==========================
+# NEW: CHATBOT ASSISTANT
+# ==========================
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+
+    if 'user_id' not in session:
+        return jsonify({
+            'reply': "Please log in first so I can help you with your account."
+        }), 401
+
+    data = request.get_json(silent=True) or {}
+    message = data.get('message', '')
+
+    reply = get_bot_response(message)
+
+    return jsonify({'reply': reply})
 
 
 if __name__ == "__main__":
